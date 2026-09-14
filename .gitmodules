@@ -1,0 +1,3 @@
+[submodule "root"]
+	path = root
+	url = https://github.com/mouseos/sh53d-temp-root.git

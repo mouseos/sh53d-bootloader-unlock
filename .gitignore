@@ -1,0 +1,4 @@
+.work/
+mtkclient/
+*.log
+__pycache__/

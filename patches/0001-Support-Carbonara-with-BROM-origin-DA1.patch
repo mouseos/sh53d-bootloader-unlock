@@ -1,0 +1,46 @@
+From d7bb0b07f415b9335b15affd951d715cf6743573 Mon Sep 17 00:00:00 2001
+From: yuma shimizu <46545607+mouseos@users.noreply.github.com>
+Date: Sun, 13 Sep 2026 22:53:04 +0900
+Subject: [PATCH] Support Carbonara with BROM-origin DA1
+
+---
+ mtkclient/Library/DA/mtk_da_handler.py    | 4 +++-
+ mtkclient/Library/DA/xflash/xflash_lib.py | 5 ++++-
+ 2 files changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/mtkclient/Library/DA/mtk_da_handler.py b/mtkclient/Library/DA/mtk_da_handler.py
+index d3394f3..1095686 100644
+--- a/mtkclient/Library/DA/mtk_da_handler.py
++++ b/mtkclient/Library/DA/mtk_da_handler.py
+@@ -172,9 +172,11 @@ class DaHandler(metaclass=LogBase):
+                     mtk.daloader.patch = True
+                     self.info("Unprotected device, we assume we can patch directly !")
+                 else:
+-                    if not self.mtk.config.stock:
++                    if not self.mtk.config.stock and self.mtk.config.ptype != "carbonara":
+                         mtk = mtk.bypass_security()  # Needed for dumping preloader
+                         bypassedsecurity = True
++                    elif self.mtk.config.ptype == "carbonara":
++                        self.info("Using signed DA1 for an explicit Carbonara attempt. Skipping BROM exploitation!")
+                     else:
+                         self.info("Using supplied preloader. Skipping exploitation!")
+ 
+diff --git a/mtkclient/Library/DA/xflash/xflash_lib.py b/mtkclient/Library/DA/xflash/xflash_lib.py
+index 2f46727..15fa17d 100644
+--- a/mtkclient/Library/DA/xflash/xflash_lib.py
++++ b/mtkclient/Library/DA/xflash/xflash_lib.py
+@@ -1153,7 +1153,10 @@ class DAXFlash(metaclass=LogBase):
+                 self.info("Uploading stage 2...")
+                 stage = stage + 1
+                 loaded = False
+-                if not self.mtk.daloader.patch and not self.mtk.config.stock and connagent == b"preloader":
++                carbonara_agent = connagent == b"preloader" or (
++                    connagent == b"brom" and self.mtk.config.ptype == "carbonara"
++                )
++                if not self.mtk.daloader.patch and not self.mtk.config.stock and carbonara_agent:
+                     if (self.carbonara is not None and
+                             self.mtk.config.target_config["sbc"]):
+                         # Do NOT patch da1 on usage of carbonara
+-- 
+2.43.0
+
