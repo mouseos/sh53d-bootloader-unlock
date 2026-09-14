@@ -11,13 +11,13 @@ python3 -m pip install -r mtkclient/requirements.txt
 
 ## 2. 一時root
 
-`root/`は`mouseos/sh53d-temp-root`のGit submoduleです。未取得ならrepository rootで`git submodule update --init --recursive`を実行します。続けて`./scripts/prepare-root.sh`で固定release `v0.2.0`のbinaryを取得・検証します。
+`root/`は`mouseos/sh53d-temp-root`のGit submoduleです。未取得ならrepository rootで`git submodule update --init --recursive`を実行します。続けて`./scripts/prepare-root.sh`で固定artifactを配置・検証します。
 
 ```bash
 cd root
 ./run.sh
 cd ..
-adb shell "/data/local/tmp/sh53d-root -c 'id; getenforce'"
+adb shell "/data/local/tmp/su -c 'id; getenforce'"
 ```
 
 `uid=0`と`Permissive`の両方が必要です。
@@ -26,9 +26,9 @@ adb shell "/data/local/tmp/sh53d-root -c 'id; getenforce'"
 
 ```bash
 adb push brom-entry/sh53d_brom_entry-runtime.ko /data/local/tmp/
-adb shell "/data/local/tmp/sh53d-root -c 'insmod /data/local/tmp/sh53d_brom_entry-runtime.ko execute=0 timeout_ms=60000'"
-adb shell "/data/local/tmp/sh53d-root -c 'dmesg | tail -40'"
-adb shell "/data/local/tmp/sh53d-root -c 'rmmod sh53d_brom_entry'"
+adb shell "/data/local/tmp/su -c 'insmod /data/local/tmp/sh53d_brom_entry-runtime.ko execute=0 timeout_ms=60000'"
+adb shell "/data/local/tmp/su -c 'dmesg | tail -40'"
+adb shell "/data/local/tmp/su -c 'rmmod sh53d_brom_entry'"
 ```
 
 logに`dry run only; no MMIO or storage write performed`があることを確認します。
@@ -52,7 +52,7 @@ python3 "$repo_root/mtkclient/mtk.py" printgpt \
 mtkclientがPreLoader VCOM待機に入ったら、別terminalで実行します。
 
 ```bash
-adb shell "/data/local/tmp/sh53d-root -c 'insmod /data/local/tmp/sh53d_brom_entry-runtime.ko execute=1 timeout_ms=60000'"
+adb shell "/data/local/tmp/su -c 'insmod /data/local/tmp/sh53d_brom_entry-runtime.ko execute=1 timeout_ms=60000'"
 ```
 
 ADBはwatchdog resetで切断されます。mtkclient側で次を確認します。

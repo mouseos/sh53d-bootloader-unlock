@@ -28,7 +28,7 @@ SH-53Dのstock Preloaderは、Security AOのretained registerにUSB download req
 
 ## 実機結果
 
-`38JP_1_30I`でmoduleをloadし、BROM USB `0e8d:0003`の列挙とmtkclient handshakeを確認しました。60秒のtimeoutでmtkclientを先に待機させた場合、署名済みDA1の起動まで進みました。
+`38JP_3_330`でmoduleをloadし、BROM USB `0e8d:0003`の列挙とmtkclient handshakeを確認しました。60秒のtimeoutでmtkclientを先に待機させた場合、署名済みDA1の起動まで進みました。
 
 BROM handshake後にmtkclientがwatchdogを停止すると、retained flagのtimeoutはAndroidへの復帰を保証しません。通信不能時はUSBを抜き、物理的な強制再起動が必要です。
 
@@ -37,13 +37,13 @@ BROM handshake後にmtkclientがwatchdogを停止すると、retained flagのtim
 実機用binaryのvermagicは次のとおりです。
 
 ```text
-4.19.191+ SMP preempt mod_unload modversions aarch64
+6.6.89-android15-8-gbe8d201b0d27-ab13762941-4k SMP preempt mod_unload modversions aarch64
 ```
 
-再buildには同じkernel release、configuration、`Module.symvers`、Clang toolchainが必要です。Sharp公開のAQUOS wish3 V1.20A kernel 4.19 sourceとClang r383902でexternal moduleとしてbuildした後、実機の`uname -r`と`modinfo`のvermagicを必ず一致させます。
+再buildには同じkernel release、configuration、`Module.symvers`、Clang toolchainが必要です。Sharp公開のAQUOS wish3 V3.21G kernel 6.6 sourceとClang 18でexternal moduleとしてbuildした後、実機の`uname -r`と`modinfo`のvermagicを必ず一致させます。
 
 ```bash
-make -C /path/to/kernel-4.19 \
+make -C /path/to/kernel-6.6 \
     O=/path/to/kernel-out \
     M="$PWD/brom-entry" \
     ARCH=arm64 LLVM=1 LLVM_IAS=1 modules

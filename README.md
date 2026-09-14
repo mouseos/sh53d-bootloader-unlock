@@ -7,11 +7,11 @@ Sharp AQUOS wish3 SH-53Dの出荷状態で拒否されるbootloader unlockを、
 | 項目 | 値 |
 | --- | --- |
 | 機種 | Sharp AQUOS wish3 SH-53D |
-| Software | `38JP_1_30I` |
-| Fingerprint | `DOCOMO/SH-53D/SH-53D:13/TP1A.220624.014/38JP_1_30I:user/release-keys` |
-| Android | 13 |
-| Security patch | 2023-12-05 |
-| Kernel | Linux 4.19.191+, arm64 |
+| Software | `38JP_3_330` |
+| Fingerprint | `DOCOMO/SH-53D/SH-53D:15/AP3A.240905.015.A2/38JP_3_330:user/release-keys` |
+| Android | 15 |
+| Security patch | 2026-07-05 |
+| Kernel | Linux 6.6.89-android15-8-gbe8d201b0d27-ab13762941-4k, arm64 |
 | SoC | MediaTek MT6833 |
 | HW code | `0x989` |
 | HW subcode | `0x8a00` |
@@ -31,12 +31,12 @@ Preloader partitionのflash、raw `dd`によるseccfg書き換え、HACC MMIOの
 
 ## 収録内容
 
-- `root/`: `38JP_1_30I`専用の[sh53d-temp-root](https://github.com/mouseos/sh53d-temp-root)をcommit `ead30afee63467082ed721613184e1f0a76990ca`に固定したGit submodule
+- `root/`: `38JP_3_330`専用の[sh53d-temp-root](https://github.com/mouseos/sh53d-temp-root)をcommit `7f5c29c7d27a5bd4bc0855d10efd7453fd542337`に固定したGit submodule
 - `brom-entry/`: retained USBDL flagを設定してBROMへresetするkernel moduleのソースと実機用`.ko`
-- `firmware/preloader_a.bin`: `38JP_1_30I`から取得したEMI初期化用Preloader
+- `firmware/preloader_a.bin`: EMI初期化用Preloader
 - `patches/`: BROM起点のCarbonaraを有効にするmtkclient patch
 - `scripts/prepare-mtkclient.sh`: 検証済みmtkclient revisionの取得とpatch適用
-- `scripts/prepare-root.sh`: submoduleに固定したroot release `v0.2.0`のbinary取得とhash検証
+- `scripts/prepare-root.sh`: submoduleに固定したroot artifactの配置とhash検証
 - `scripts/unlock.sh`: 対象build、ファイルhash、DA extension起動、erase成功を確認しながらunlockするrunner
 - `docs/BROM_ENTRY.md`: BROM遷移の根拠とregister transaction
 - `docs/MTKCLIENT_PATCH.md`: CarbonaraをBROM起点で有効にする変更点と実機結果

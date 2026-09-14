@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 set -Eeuo pipefail
 
-readonly EXPECTED_FINGERPRINT='DOCOMO/SH-53D/SH-53D:13/TP1A.220624.014/38JP_1_30I:user/release-keys'
+readonly EXPECTED_FINGERPRINT='DOCOMO/SH-53D/SH-53D:15/AP3A.240905.015.A2/38JP_3_330:user/release-keys'
 readonly EXPECTED_PRELOADER_SHA256='98613d63052fa2f499802d7e35be47ca95025cd5a1400b9c546f09daa54c75f8'
-readonly EXPECTED_MODULE_SHA256='a12d7f2bf1094412bb8ea3aec30759831c4be7560e1a76548cca36c02715a193'
+readonly EXPECTED_MODULE_SHA256='e5c547e58789e8709a3d81806ee59bdca77eb736784a9f7da17ab65c6546bef7'
 readonly EXPECTED_MTKCLIENT_COMMIT='cd25cf9c1ff6d36e82697ac2c798e69e9cfb78c3'
 readonly EXPECTED_LOADER_SHA256='aef234190ccb8145d2e3b8459741e9adb70f2caa8481aa216c1b25152afaca1f'
 readonly REMOTE_DIR='/data/local/tmp'
@@ -77,17 +77,23 @@ fingerprint=$(adb shell getprop ro.build.fingerprint | tr -d '\r')
     echo "Unsupported build: $fingerprint" >&2
     exit 1
 }
-root_state=$(adb shell "$REMOTE_DIR/sh53d-root" -c 'id; getenforce' | tr -d '\r')
+root_state=$(adb shell "$REMOTE_DIR/su -c 'id; getenforce'" 2>/dev/null | tr -d '\r' || true)
+if ! grep -F 'uid=0(root)' <<<"$root_state" >/dev/null ||
+   ! grep -Fx 'Permissive' <<<"$root_state" >/dev/null; then
+    phase='temporary root'
+    "$repo_root/scripts/prepare-root.sh"
+    (cd "$repo_root/root" && ./run.sh </dev/null)
+    root_state=$(adb shell "$REMOTE_DIR/su -c 'id; getenforce'" | tr -d '\r')
+fi
 grep -F 'uid=0(root)' <<<"$root_state" >/dev/null
 grep -Fx 'Permissive' <<<"$root_state" >/dev/null
 
 phase='BROM module dry-run'
 adb push "$module" "$REMOTE_DIR/sh53d_brom_entry-runtime.ko" >/dev/null
-adb shell "$REMOTE_DIR/sh53d-root" -c \
-    'insmod /data/local/tmp/sh53d_brom_entry-runtime.ko execute=0 timeout_ms=60000'
-dry_run_log=$(adb shell "$REMOTE_DIR/sh53d-root" -c 'dmesg | tail -40' | tr -d '\r')
+adb shell "$REMOTE_DIR/su -c 'insmod /data/local/tmp/sh53d_brom_entry-runtime.ko execute=0 timeout_ms=60000'"
+dry_run_log=$(adb shell "$REMOTE_DIR/su -c 'dmesg | tail -40'" | tr -d '\r')
 grep -F 'dry run only; no MMIO or storage write performed' <<<"$dry_run_log" >/dev/null
-adb shell "$REMOTE_DIR/sh53d-root" -c 'rmmod sh53d_brom_entry'
+adb shell "$REMOTE_DIR/su -c 'rmmod sh53d_brom_entry'"
 
 mkdir -p "$work_root"
 work=$(mktemp -d "$work_root/run.XXXXXX")
@@ -115,8 +121,7 @@ for ((attempt = 0; attempt < 30; attempt++)); do
     sleep 0.5
 done
 grep -F 'Waiting for PreLoader VCOM' "$work/printgpt.log" >/dev/null
-adb shell "$REMOTE_DIR/sh53d-root" -c \
-    'insmod /data/local/tmp/sh53d_brom_entry-runtime.ko execute=1 timeout_ms=60000' \
+adb shell "$REMOTE_DIR/su -c 'insmod /data/local/tmp/sh53d_brom_entry-runtime.ko execute=1 timeout_ms=60000'" \
     >/dev/null 2>&1 || true
 wait "$mtk_pid"
 grep -F 'Using signed DA1 for an explicit Carbonara attempt' "$work/printgpt.log" >/dev/null

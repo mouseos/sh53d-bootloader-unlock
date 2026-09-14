@@ -29,7 +29,7 @@ SH-53Dでは署名済みDA1をBROMから起動できますが、そのDA1はconn
 
 ## 実機検証
 
-Sharp AQUOS wish3 SH-53D、software `38JP_1_30I`、MT6833/XFlash V5で次を確認しました。
+Sharp AQUOS wish3 SH-53D、software `38JP_3_330`、MT6833/XFlash V5で次を確認しました。
 
 1. BROMが署名済みDA1を受理
 2. DA syncとEMI初期化に成功

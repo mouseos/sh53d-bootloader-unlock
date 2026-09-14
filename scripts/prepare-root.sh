@@ -2,30 +2,26 @@
 # SPDX-License-Identifier: Apache-2.0
 set -euo pipefail
 
-readonly RELEASE='v0.2.0'
-readonly RELEASE_BASE='https://github.com/mouseos/sh53d-temp-root/releases/download/v0.2.0'
+readonly EXPECTED_ROOT_COMMIT='7f5c29c7d27a5bd4bc0855d10efd7453fd542337'
+readonly EXPECTED_ARTIFACT_SHA256='a3a41a6c29b53eec429cb20acfda3e56c50f6e921af3a9e40c86fb4dd87feb01'
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-dist="$repo_root/root/dist"
+source_artifact="$repo_root/root-prebuilt/preload-sh53d-38JP_3_330.so"
+target_artifact="$repo_root/root/out/preload-sh53d-38JP_3_330.so"
 
-command -v curl >/dev/null || {
-    echo 'curl was not found.' >&2
-    exit 1
-}
 [[ -f "$repo_root/root/run.sh" ]] || {
     echo 'Root submodule is missing. Run git submodule update --init --recursive.' >&2
     exit 1
 }
+[[ "$(git -C "$repo_root/root" rev-parse HEAD)" == "$EXPECTED_ROOT_COMMIT" ]] || {
+    echo 'Unexpected root submodule commit.' >&2
+    exit 1
+}
+[[ "$(sha256sum "$source_artifact" | awk '{print $1}')" == "$EXPECTED_ARTIFACT_SHA256" ]] || {
+    echo 'Root preload artifact hash mismatch.' >&2
+    exit 1
+}
 
-mkdir -p "$dist"
-files=(SHA256SUMS sh53d-slide.so sh53d-exploit.so sh53d-root sh53d-launcher.so)
-for file in "${files[@]}"; do
-    if [[ -e "$dist/$file" ]]; then
-        continue
-    fi
-    curl --fail --location --retry 3 \
-        --output "$dist/$file" "$RELEASE_BASE/$file"
-done
-
-(cd "$dist" && sha256sum --check SHA256SUMS)
-echo "Prepared sh53d-temp-root $RELEASE binaries in $dist"
+mkdir -p "$(dirname "$target_artifact")"
+cp "$source_artifact" "$target_artifact"
+echo "Prepared $target_artifact"
